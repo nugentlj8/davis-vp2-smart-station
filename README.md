@@ -149,9 +149,19 @@ dashboard will render as a column of *"Custom element doesn't exist"* errors:
    appears automatically under *Settings → Devices & Services → MQTT*. No YAML needed for
    the sensors themselves — it's all auto-discovery.
 
-   > **Don't rename the device in HA.** Every config file here refers to entities as
-   > `sensor.davis_vantage_pro2_*`. Renaming the device regenerates those entity IDs and
-   > silently breaks the template sensors and dashboard.
+   > **Check the entity IDs before going further.** Every config file here refers to
+   > entities as `sensor.davis_vantage_pro2_*`. Two things change that:
+   >
+   > - **Assigning the device to an area** bakes the area name into the IDs of every entity
+   >   created *afterwards* — a device in an "Office" area yields
+   >   `sensor.office_davis_vantage_pro2_barometer`. Entities that already existed keep their
+   >   old IDs, so you can end up with a confusing mix of both.
+   > - **Renaming the device** regenerates the IDs the same way.
+   >
+   > Easiest path: leave the device unassigned until all its entities exist, then set the area.
+   > If you already have prefixed IDs, either rename the entities
+   > (*Settings → Devices & Services → MQTT → Davis Vantage Pro2 →* entity → ⚙ → *Entity ID*)
+   > or find-and-replace the prefix across `configuration_helpers.yaml` and `dashboard.yaml`.
 
 3. **Template sensors** — merge [`homeassistant/configuration_helpers.yaml`](homeassistant/configuration_helpers.yaml)
    into your `configuration.yaml`. It defines `template:`, `input_text:`, and `binary_sensor:`

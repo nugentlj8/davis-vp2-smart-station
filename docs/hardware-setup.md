@@ -91,9 +91,15 @@ Rules:
    **Diagnostics:** Bridge Uptime, WiFi Signal, Free Memory, Read Failures, Last Status,
    AP (BSSID), IP Address, MAC, WiFi Channel.
 
-   > Leave the device name as **Davis Vantage Pro2**. The template sensors and dashboard
-   > refer to entities as `sensor.davis_vantage_pro2_*`; renaming the device in HA
-   > regenerates those entity IDs and breaks both.
+   > The template sensors and dashboard refer to entities as `sensor.davis_vantage_pro2_*`.
+   > Both **renaming the device** and **assigning it to an area** change how HA generates
+   > those IDs — a device placed in an "Office" area produces
+   > `sensor.office_davis_vantage_pro2_barometer` instead. Only entities created *after* the
+   > change are affected, so a device that gains an area partway through ends up with a mix
+   > of prefixed and unprefixed IDs, which is easy to misdiagnose later.
+   >
+   > Simplest: leave the device unassigned until all entities have appeared, then set the area.
+   > Otherwise rename the entities, or adjust the prefix in the YAML to match.
 
 No YAML required — it's all auto-discovery.
 
