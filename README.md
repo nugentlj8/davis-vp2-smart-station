@@ -11,7 +11,8 @@ console-style dashboard, and a locally-hosted LLM that narrates the weather —
 
 ![The Davis Vantage Pro2 console with the ESP32 bridge wired into its expansion port](docs/console-with-esp32.jpg)
 
-<sub>Three wires into the expansion port on top of the console — no logger, no case mods, no cloud.</sub>
+<sub>Three wires into the expansion port on the <b>back</b> of the console — no logger, no case mods,
+no cloud. The ESP32 is just resting on top here.</sub>
 
 ---
 
@@ -83,7 +84,7 @@ no proprietary logger — three wires and a flash.
 | Item | Notes |
 |---|---|
 | Davis Vantage Pro2 console | Firmware pre-2012 (serial port unlocked) |
-| ESP32 dev board | Any ESP32; 2.4 GHz Wi-Fi |
+| ESP32 dev board | Any ESP32; built on an ELEGOO EL-SM-012 (ESP-WROOM-32, USB-C) |
 | 3 jumper wires | Console TX→GPIO18, RX→GPIO17, GND→GND (3.3 V, no level shifter) |
 | USB power supply | A solid 5 V wall adapter — **not** a USB hub |
 

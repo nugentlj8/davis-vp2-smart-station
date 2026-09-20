@@ -1,8 +1,8 @@
-# Davis Vantage Pro2 → ESP32-S3 → Home Assistant
+# Davis Vantage Pro2 → ESP32 → Home Assistant
 
 A pre-2012 console (the one this was built against reports firmware **Nov 13 2004**, well before the
 serial lockout) outputs every reading
-digitally over its expansion port at **3.3 V TTL** — the exact voltage the ESP32-S3 runs at. No camera,
+digitally over its expansion port at **3.3 V TTL** — the exact voltage the ESP32 runs at. No camera,
 no cloud AI, no data logger. Three wires and a flash.
 
 ---
@@ -11,7 +11,7 @@ no cloud AI, no data logger. Three wires and a flash.
 
 | Item | Notes |
 |---|---|
-| ESP32-S3-WROOM dev board | Any ESP32 works; this was built on an S3. |
+| ESP32 dev board | Any ESP32 with a spare hardware UART. Built on an ELEGOO EL-SM-012 (ESP-WROOM-32, USB-C, 520 KB SRAM / 4 MB flash), but an S3 or a plain DevKit v1 works the same. |
 | Connector to the console port | The expansion port is a **2×10, 2 mm-pitch** male header. Easiest: a 2 mm IDC socket + ribbon, or carefully fit 2 mm female jumpers onto the 3 pins you need. |
 | 3 jumper wires | Console → ESP32. |
 | USB-C cable | Powers + flashes the ESP32. |
@@ -35,7 +35,7 @@ for reference; not covered by this repository's MIT license.</sub>
 The connector is a 2x10 header, numbered as shown **from the back of the unit** — odd pins on the
 bottom row, even pins on the top. Only three of the twenty matter here:
 
-| Console expansion port | → | ESP32-S3 | Meaning |
+| Console expansion port | → | ESP32 | Meaning |
 |---|---|---|---|
 | Pin 6 — TXD0 (console transmit) | → | **GPIO 18** (RX) | Console talks, ESP listens |
 | Pin 5 — RXD0 (console receive) | → | **GPIO 17** (TX) | ESP talks, console listens |
@@ -65,7 +65,9 @@ Rules:
 5. Edit the **USER CONFIG** block at the top:
    - `WIFI_SSID` / `WIFI_PASS`
    - `MQTT_HOST` = your Home Assistant box's IP, `MQTT_USER` / `MQTT_PASS` (set in step 4 below)
-6. Select board **ESP32S3 Dev Module**, pick the COM port, click **Upload**.
+6. Select your board — **ESP32 Dev Module** for a classic ESP-WROOM-32, or **ESP32S3 Dev Module**
+   for an S3 — pick the COM port, and click **Upload**. If the upload doesn't start, hold the board's
+   **BOOT** button while it connects.
 7. Open **Serial Monitor** at **115200 baud**. You should see WiFi + MQTT connect, then a line of JSON
    roughly every 2.5 s with your live readings. `CRC fail (frame discarded)` lines occasionally are
    normal and good — that's the firmware throwing out a corrupt frame instead of logging bad data.
