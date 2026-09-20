@@ -9,6 +9,25 @@ console-style dashboard, and a locally-hosted LLM that narrates the weather —
 > protocol, bridged it to Home Assistant over MQTT with custom ESP32 firmware,
 > and layered on long-term statistics, dashboards, and edge AI.
 
+![The Davis Vantage Pro2 console with the ESP32 bridge wired into its expansion port](docs/console-with-esp32.jpg)
+
+<sub>Three wires into the expansion port on top of the console — no logger, no case mods, no cloud.</sub>
+
+---
+
+## The dashboard
+
+![Home Assistant console-style dashboard showing the wind compass, live conditions, and barometer trend](docs/dashboard-console-tab.png)
+
+<sub>The live view: rotating wind compass, AI ticker line, current conditions, and a 24-hour barometer trace.
+The readings match the console's own LCD in the photo above.</sub>
+
+![Records dashboard overlaying two decades of archived data against live sensor readings](docs/dashboard-records-tab.png)
+
+<sub>The Records tab — 20 years of hand-logged history (blue) overlaid with live station data (orange),
+across yearly, monthly, daily, and hourly granularities. Record highs back to 2005 sit on the same
+axes as this morning's readings.</sub>
+
 ---
 
 ## How it works
@@ -171,6 +190,31 @@ your own; none of them are real.
 **no data at all** → swap the RX/TX wires (harmless at 3.3 V, and the labels trip everyone up);
 **constant CRC failures** → check the ground connection and confirm the console is on its main
 display, not a setup screen.
+
+---
+
+## Running it day to day
+
+**Home Assistant needs a permanent home.** This build runs HA as a Docker container on an
+always-on Windows machine, which is what the backup script assumes — it stops the container,
+zips the config folder, and restarts it, so the SQLite database is never copied mid-write.
+Docker is the practical choice on Windows or an existing server: HA ships an official image,
+upgrades are a pull-and-recreate, and the whole config is one bind-mounted folder that the
+backup script can grab. A dedicated Home Assistant OS install (Raspberry Pi, mini PC) works
+just as well — the only thing that changes is the backup step, since HA OS has its own
+built-in backup system and the PowerShell script wouldn't apply.
+
+One Docker-specific gotcha worth knowing: inside the container, `localhost` is the container,
+not the host. Anything running on the host — Ollama, most commonly — has to be reached by the
+host's LAN IP instead, and has to be listening on more than loopback. `docs/ai-ticker-setup.md`
+covers that for Ollama specifically.
+
+**Remote access** is handled with a Cloudflare Zero Trust tunnel, so the dashboard is reachable
+from outside the house without forwarding a port, exposing the HA instance directly, or paying
+for Nabu Casa. An outbound-only connector means nothing inbound is opened on the router, and
+authentication sits in front of the dashboard rather than relying on HA's login alone.
+Setting it up is well covered by Cloudflare's own docs and is independent of everything here —
+the station works entirely on the LAN without it.
 
 ---
 

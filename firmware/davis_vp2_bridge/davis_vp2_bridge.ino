@@ -14,7 +14,8 @@
  *   - Marks itself "offline" (MQTT availability) when stalled, so HA
  *     shows entities as unavailable instead of frozen values.
  *
- * Board: any ESP32 (developed on an ESP32-S3 Dev Module).
+ * Board: any ESP32 dev module (classic ESP32 or S3 — only GPIO 17/18 and
+ *        a spare hardware UART are needed).
  * Library: PubSubClient (Nick O'Leary).
  */
 
