@@ -1,0 +1,19 @@
+# Secrets / personal — never commit
+secrets.yaml
+*.token
+.env
+
+# HA database / backup logs
+*.db
+backup.log
+
+# Your real historical data (add your own copy locally)
+Weather_History_Log.xlsx
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db

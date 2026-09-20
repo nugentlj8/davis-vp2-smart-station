@@ -1,0 +1,124 @@
+alias: Weather AI ticker summary
+triggers:
+  - trigger: time_pattern
+    minutes: "/20"
+  - trigger: homeassistant
+    event: start
+actions:
+  - action: weather.get_forecasts
+    target:
+      entity_id: weather.nws_YOURSTATION
+    data:
+      type: twice_daily
+    response_variable: fc
+  - variables:
+      per0: "{{ fc['weather.nws_YOURSTATION'].forecast[0] }}"
+      per1: "{{ fc['weather.nws_YOURSTATION'].forecast[1] }}"
+      temp: "{{ states('sensor.davis_vantage_pro2_outside_temperature') | float(0) }}"
+      feels: "{{ states('sensor.apparent_temperature') | float(0) }}"
+      rate: "{{ states('sensor.davis_vantage_pro2_rain_rate') | float(0) }}"
+      day_rain: "{{ states('sensor.davis_vantage_pro2_rain_today') | float(0) }}"
+      wind: "{{ states('sensor.davis_vantage_pro2_wind_speed') | float(0) }}"
+      gust: "{{ states('sensor.wind_gust_today') | float(0) }}"
+      alerts: "{{ states('sensor.nws_alerts_YOURZONE') | int(0) }}"
+      alert_titles: >-
+        {% set s = 'sensor.nws_alerts_YOURZONE' %}
+        {{ (state_attr(s,'title') or state_attr(s,'event') or state_attr(s,'display_desc') or '') | string | truncate(220, True, '') }}
+  - action: ai_task.generate_data
+    data:
+      task_name: weather_ticker
+      entity_id: ai_task.ollama_ai_task
+      instructions: >
+        You narrate a backyard weather station in Phoenix, Arizona, for a small
+        scrolling ticker. Right now it is
+        {{ now().strftime('%A, %B %-d, %Y at %-I:%M %p') }}.
+
+        Write ONE or TWO sentences (UNDER 250 characters total) about what the
+        weather is doing right now, with a bit of personality. You may use the
+        time of day for context.
+
+        RULES:
+        - ALWAYS include the current outdoor temperature as a number with F
+          (e.g. "91 F"). Required every time, even with an alert or rain - but
+          weave it in naturally; it does NOT have to be the opening words.
+        - Have some PERSONALITY and vary it: change your opening, sentence
+          structure, and word choice each time so back-to-back summaries never
+          sound identical. A little wit or local color is welcome - stay
+          accurate and never drop the temperature or an active alert.
+        - Use ONLY the data below. Do NOT invent numbers.
+        - "LIVE NOW" is current conditions only. For the FUTURE (rain, storms,
+          clearing, warming or cooling later) use ONLY the OFFICIAL NWS FORECAST;
+          do not predict changes it does not state.
+        - State the temperature trend ONLY as given in "Temp trend".
+        - Vary what you focus on across updates - do NOT talk about temperature
+          every single time. Rotate between heat, wind, rain, the sky, or a nice
+          evening based on what is most notable right now.
+        - Only mention "feels like" if it is actually shown in LIVE NOW below.
+        - Do NOT add generic "stay hydrated" or "drink water" reminders.
+        - One space after each period. No emojis. No preamble or labels - output
+          only the sentence(s).
+
+        COMMON SENSE (judge like a Phoenix local, don't over-dramatize):
+        - The comfort word MUST match the CURRENT temperature NUMBER using this
+          scale, regardless of the trend:
+            below 50 F  = cold
+            50-67 F     = cool
+            68-82 F     = pleasant / comfortable / nice (72-77 is ideal)
+            83-95 F     = warm
+            96-109 F    = hot (100-109 is a TYPICAL Phoenix summer day: routine,
+                          not alarming)
+            110 F+      = extreme heat
+        - "comfortable", "pleasant", "nice", "cool", and "perfect" are ONLY for
+          68-82 F. Anything 83 F+ is warm or hot. Example: 90 F is WARM - never
+          "comfortable" or "cool" - even when it is falling / cooling off.
+        - A falling temperature still uses the band of its CURRENT number: 91 F
+          falling is "warm, cooling off", NOT "cool".
+        - Reserve dramatic words ("scorching", "brutal", "dangerous") for 110 F+.
+          For the 90s and low 100s keep it matter-of-fact: warm or hot, normal
+          for summer.
+        - Only suggest outdoor activity when it is actually pleasant (68-82 F).
+
+        {% if alerts | int(0) > 0 -%}
+        ACTIVE NWS ALERT - name the specific alert in your sentence (e.g.
+        "Excessive Heat Warning in effect" or "Dust Storm Warning until 8 PM").
+        Do NOT just say "an alert is in effect". The alert text is: {{ alert_titles }}
+        {%- endif %}
+
+        WIND: if wind is a real factor (sustained ~12+ mph or gusts ~20+ mph),
+        work it in - breezy, windy, or gusty as fits. Otherwise you may skip it.
+
+        {% if rate >= 0.3 -%}
+        RAIN - THIS IS THE HEADLINE right now: it is raining HARD, {{ rate }}
+        in/hr, {{ day_rain }} in so far today. Lead with the downpour, and you
+        MAY use the playful phrase "raining cats and dogs".
+        {%- elif rate > 0 -%}
+        RAIN - worth mentioning: light rain right now, {{ rate }} in/hr,
+        {{ day_rain }} in so far today.
+        {%- else -%}
+        RAIN: not raining right now (do not say it is raining).
+        {%- endif %}
+
+        LIVE NOW:
+        - Temperature {{ temp }} F{% set fd = feels - temp %}{% if fd >= 5 or fd <= -5 %}, but it feels like {{ feels }} F{% endif %}
+        - Temp trend: {{ states('sensor.outside_temp_trend') }}
+        - Humidity {{ states('sensor.davis_vantage_pro2_outside_humidity') }} %,
+          dew point {{ states('sensor.dew_point') }} F
+        - Wind {{ wind }} mph from {{ states('sensor.wind_cardinal') }},
+          gusting to {{ gust }} mph today
+        - Barometer {{ states('sensor.davis_vantage_pro2_barometer') }} inHg,
+          {{ states('sensor.davis_vantage_pro2_barometer_trend') }}
+        - Today's high/low so far
+          {{ state_attr('sensor.temp_high_low_today','high') }}/{{ state_attr('sensor.temp_high_low_today','low') }} F
+
+        OFFICIAL NWS FORECAST (only source for future weather):
+        - {{ 'Daytime' if per0.is_daytime else 'Tonight' }}: {{ per0.condition }},
+          {{ 'high' if per0.is_daytime else 'low' }} {{ per0.temperature }} F
+        - Next: {{ 'daytime' if per1.is_daytime else 'overnight' }} {{ per1.condition }},
+          {{ 'high' if per1.is_daytime else 'low' }} {{ per1.temperature }} F
+    response_variable: result
+  - action: input_text.set_value
+    target:
+      entity_id: input_text.weather_ai_summary
+    data:
+      value: "{{ result.data }}"
+mode: single

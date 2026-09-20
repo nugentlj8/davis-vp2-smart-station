@@ -1,0 +1,286 @@
+# =====================================================================
+#  Helper sensors for the Davis console-style dashboard
+# =====================================================================
+#  REPLACE your entire `template:` block in configuration.yaml with this.
+#  Then: Developer Tools -> YAML -> Check Configuration -> Restart.
+#
+#  Time zone (fixes 24h time + DST):
+#    Settings -> System -> General -> Time Zone -> "America/Phoenix"
+# =====================================================================
+
+# Text helper the AI ticker writes to (read by the Weather Ticker sensor).
+# If you already have an `input_text:` block elsewhere in configuration.yaml,
+# move just the `weather_ai_summary:` lines under it instead of duplicating the key.
+input_text:
+  weather_ai_summary:
+    name: Weather AI Summary
+    max: 255
+
+# Computes a temperature trend (rising/falling) over the last hour.
+# The `gradient` attribute is read by the "Outside Temp Trend" template sensor.
+# If you already have a `binary_sensor:` block, move the trend entry under it.
+binary_sensor:
+  - platform: trend
+    sensors:
+      outside_temp_trend:
+        entity_id: sensor.davis_vantage_pro2_outside_temperature
+        sample_duration: 3600
+        max_samples: 60
+        min_gradient: 0.00027
+
+template:
+  - sensor:
+      - name: "Wind Chill"
+        unique_id: davis_wind_chill
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        state: >
+          {% set t = states('sensor.davis_vantage_pro2_outside_temperature') | float(none) %}
+          {% set v = states('sensor.davis_vantage_pro2_wind_speed') | float(none) %}
+          {% if t is none or v is none %}
+            {{ states('sensor.davis_vantage_pro2_outside_temperature') }}
+          {% elif t <= 50 and v >= 3 %}
+            {{ (35.74 + 0.6215*t - 35.75*(v ** 0.16) + 0.4275*t*(v ** 0.16)) | round(1) }}
+          {% else %}
+            {{ t | round(1) }}
+          {% endif %}
+
+      - name: "Dew Point"
+        unique_id: davis_dew_point
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        state: >
+          {% set tf = states('sensor.davis_vantage_pro2_outside_temperature') | float(none) %}
+          {% set rh = states('sensor.davis_vantage_pro2_outside_humidity') | float(none) %}
+          {% if tf is none or rh is none or rh <= 0 %}
+            {{ states('sensor.davis_vantage_pro2_outside_temperature') }}
+          {% else %}
+            {% set tc = (tf - 32) * 5 / 9 %}
+            {% set a = 17.27 %}
+            {% set b = 237.7 %}
+            {% set g = (a * tc / (b + tc)) + log(rh / 100) %}
+            {% set td = b * g / (a - g) %}
+            {{ (td * 9 / 5 + 32) | round(1) }}
+          {% endif %}
+
+      # "Feels like": heat index when hot, wind chill when cold, else air temp
+      - name: "Apparent Temperature"
+        unique_id: davis_apparent_temp
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        state: >
+          {% set t = states('sensor.davis_vantage_pro2_outside_temperature') | float(none) %}
+          {% set rh = states('sensor.davis_vantage_pro2_outside_humidity') | float(none) %}
+          {% set w = states('sensor.davis_vantage_pro2_wind_speed') | float(0) %}
+          {% if t is none or rh is none %}
+            {{ states('sensor.davis_vantage_pro2_outside_temperature') }}
+          {% elif t >= 80 %}
+            {% set hi = -42.379 + 2.04901523*t + 10.14333127*rh - 0.22475541*t*rh - 0.00683783*t*t - 0.05481717*rh*rh + 0.00122874*t*t*rh + 0.00085282*t*rh*rh - 0.000001999*t*t*rh*rh %}
+            {{ hi | round(1) }}
+          {% elif t <= 50 and w >= 3 %}
+            {{ (35.74 + 0.6215*t - 35.75*(w ** 0.16) + 0.4275*t*(w ** 0.16)) | round(1) }}
+          {% else %}
+            {{ t | round(1) }}
+          {% endif %}
+
+      # Temperature trend label from the trend binary_sensor's gradient
+      - name: "Outside Temp Trend"
+        unique_id: davis_outside_temp_trend
+        icon: mdi:thermometer
+        state: >-
+          {% set g = state_attr('binary_sensor.outside_temp_trend','gradient') | float(0) %}
+          {%- if g > 0.00027 -%} rising
+          {%- elif g < -0.00027 -%} falling
+          {%- else -%} steady
+          {%- endif -%}
+
+      - name: "Wind Cardinal"
+        unique_id: davis_wind_cardinal
+        icon: mdi:compass-outline
+        state: >
+          {% set d = states('sensor.davis_vantage_pro2_wind_direction') | float(none) %}
+          {% if d is none %}
+            --
+          {% else %}
+            {% set dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'] %}
+            {{ dirs[(((d / 22.5) + 0.5) | int) % 16] }}
+          {% endif %}
+
+      - name: "Moon Display"
+        unique_id: davis_moon_display
+        state: "{{ states('sensor.moon_phase') | replace('_', ' ') | title }}"
+        icon: >
+          {% set m = {
+            'new_moon': 'mdi:moon-new',
+            'waxing_crescent': 'mdi:moon-waxing-crescent',
+            'first_quarter': 'mdi:moon-first-quarter',
+            'waxing_gibbous': 'mdi:moon-waxing-gibbous',
+            'full_moon': 'mdi:moon-full',
+            'waning_gibbous': 'mdi:moon-waning-gibbous',
+            'last_quarter': 'mdi:moon-last-quarter',
+            'waning_crescent': 'mdi:moon-waning-crescent' } %}
+          {{ m.get(states('sensor.moon_phase'), 'mdi:moon-waning-gibbous') }}
+
+      - name: "Sun Next"
+        unique_id: davis_sun_next
+        icon: >
+          {% set r = as_timestamp(state_attr('sun.sun','next_rising')) %}
+          {% set s = as_timestamp(state_attr('sun.sun','next_setting')) %}
+          {{ 'mdi:weather-sunset-up' if r < s else 'mdi:weather-sunset-down' }}
+        state: >
+          {% set r = as_timestamp(state_attr('sun.sun','next_rising')) %}
+          {% set s = as_timestamp(state_attr('sun.sun','next_setting')) %}
+          {% if r < s %}
+            Sunrise {{ r | timestamp_custom('%-I:%M %p') }}
+          {% else %}
+            Sunset {{ s | timestamp_custom('%-I:%M %p') }}
+          {% endif %}
+
+      # Barometer pressure with a trend-direction arrow icon
+      # (arrow angle reflects how fast it's rising/falling)
+      - name: "Barometer Trend Display"
+        unique_id: davis_barometer_trend_display
+        state: "{{ states('sensor.davis_vantage_pro2_barometer_trend') }}"
+        icon: >
+          {% set t = states('sensor.davis_vantage_pro2_barometer_trend') %}
+          {% set m = {
+            'Rising Rapidly':  'mdi:arrow-up',
+            'Rising Slowly':   'mdi:arrow-top-right',
+            'Steady':          'mdi:arrow-right',
+            'Falling Slowly':  'mdi:arrow-bottom-right',
+            'Falling Rapidly': 'mdi:arrow-down' } %}
+          {{ m.get(t, 'mdi:arrow-right') }}
+
+      # Full Davis forecast sentence decoded from the forecast_rule byte.
+      # Each rule -> up to 3 phrase fragments (sky/temp, precip, wind) joined.
+      # Source: CumulusMX lookup table + Cumulus Samplestring.ini phrases.
+      - name: "Detailed Forecast"
+        unique_id: davis_detailed_forecast
+        icon: mdi:text-long
+        state: >-
+          {% set r = states('sensor.office_davis_vantage_pro2_forecast_rule') | int(-1) %}
+          {% set lut = [[14,0,0],[13,0,0],[12,0,0],[11,0,0],[13,0,0],[25,0,0],[24,0,0],[24,0,0],[10,0,0],[24,0,0],[24,0,0],[13,0,0],[7,2,0],[24,0,0],[13,0,0],[6,3,0],[13,0,0],[24,0,0],[13,0,0],[6,6,0],[13,0,0],[24,0,0],[13,0,0],[7,3,0],[10,0,6],[24,0,0],[13,0,0],[7,6,6],[10,0,6],[7,0,0],[24,0,0],[13,0,0],[7,6,6],[10,0,6],[7,0,0],[24,0,0],[13,0,0],[7,6,6],[24,0,0],[13,0,0],[10,1,0],[10,0,0],[24,0,0],[13,0,0],[6,2,0],[6,0,0],[24,0,0],[13,0,0],[7,4,0],[24,0,0],[13,0,0],[7,4,5],[24,0,0],[13,0,0],[7,4,5],[24,0,0],[13,0,0],[7,7,0],[24,0,0],[13,0,0],[7,7,5],[24,0,0],[13,0,0],[7,4,5],[24,0,0],[13,0,0],[7,6,0],[24,0,0],[13,0,0],[7,16,0],[4,14,0],[24,0,0],[4,14,0],[13,0,0],[4,14,0],[25,0,0],[24,0,0],[14,0,0],[4,14,0],[13,0,0],[4,14,0],[14,0,0],[24,0,0],[13,0,0],[6,3,0],[2,18,0],[24,0,0],[13,0,0],[2,16,0],[1,18,0],[1,16,0],[24,0,0],[13,0,0],[5,9,0],[6,9,0],[2,18,6],[24,0,0],[13,0,0],[2,16,6],[1,18,6],[1,16,6],[24,0,0],[13,0,0],[5,4,4],[6,4,4],[24,0,0],[13,0,0],[5,10,4],[6,10,4],[2,13,4],[2,0,4],[1,13,4],[1,0,4],[2,13,4],[24,0,0],[13,0,0],[2,3,4],[1,13,4],[1,3,4],[3,14,0],[3,0,0],[2,14,3],[2,0,3],[3,0,0],[24,0,0],[13,0,0],[1,6,5],[24,0,0],[13,0,0],[5,5,5],[2,14,5],[24,0,0],[13,0,0],[2,6,5],[2,11,0],[2,0,0],[2,17,5],[24,0,0],[13,0,0],[2,7,5],[1,17,5],[24,0,0],[13,0,0],[1,7,5],[24,0,0],[13,0,0],[6,5,5],[2,0,5],[2,17,5],[24,0,0],[13,0,0],[2,15,5],[1,17,5],[1,15,5],[24,0,0],[13,0,0],[5,10,5],[6,10,5],[5,18,3],[24,0,0],[13,0,0],[2,16,3],[1,18,3],[1,16,3],[5,10,3],[24,0,0],[13,0,0],[5,10,4],[6,10,3],[6,10,4],[24,0,0],[13,0,0],[5,10,3],[6,10,3],[24,0,0],[13,0,0],[5,4,3],[6,4,3],[2,12,3],[24,0,0],[13,0,0],[2,8,3],[1,13,3],[1,8,3],[2,18,0],[24,0,0],[13,0,0],[2,16,3],[1,18,0],[1,16,0],[24,0,0],[13,0,0],[2,5,5],[0,0,0],[26,0,0],[26,0,0],[26,0,0],[26,0,0],[26,0,0],[26,0,0],[26,0,0]] %}
+          {% set p1 = ['FORECAST REQUIRES 3 HRS. OF RECENT DATA','Mostly cloudy with little temperature change.','Mostly cloudy and cooler.','Clearing, cooler and windy.','Clearing and cooler.','Increasing clouds and cooler.','Increasing clouds with little temperature change.','Increasing clouds and warmer.','Mostly clear for 12 to 24 hours with little temperature change.','Mostly clear for 6 to 12 hours with little temperature change.','Mostly clear and warmer.','Mostly clear for 12 to 24 hours and cooler.','Mostly clear for 12 hours with little temperature change.','Mostly clear with little temperature change.','Mostly clear and cooler.','Partially cloudy, Rain and/or snow possible or continuing.','Partially cloudy, Snow possible or continuing.','Partially cloudy, Rain possible or continuing.','Mostly cloudy, Rain and/or snow possible or continuing.','Mostly cloudy, Snow possible or continuing.','Mostly cloudy, Rain possible or continuing.','Mostly cloudy.','Partially cloudy.','Mostly clear.','Partly cloudy with little temperature change.','Partly cloudy and cooler.','Unknown forecast rule.'] %}
+          {% set p2 = ['','Precipitation possible within 48 hours.','Precipitation possible within 24 to 48 hours.','Precipitation possible within 24 hours.','Precipitation possible within 12 to 24 hours.','Precipitation possible within 12 hours, possibly heavy at times.','Precipitation possible within 12 hours.','Precipitation possible within 6 to 12 hours.','Precipitation possible within 6 to 12 hours, possibly heavy at times.','Precipitation possible and windy within 6 hours.','Precipitation possible within 6 hours.','Precipitation ending in 12 to 24 hours.','Precipitation possibly heavy at times and ending within 12 hours.','Precipitation ending within 12 hours.','Precipitation ending within 6 hours.','Precipitation likely, possibly heavy at times.','Precipitation likely.','Precipitation continuing, possibly heavy at times.','Precipitation continuing.'] %}
+          {% set p3 = ['','Windy with possible wind shift to the W, SW, or S.','Possible wind shift to the W, SW, or S.','Windy with possible wind shift to the W, NW, or N.','Possible wind shift to the W, NW, or N.','Windy.','Increasing winds.'] %}
+          {%- if r < 0 or r >= lut | length -%}
+            {{ states('sensor.davis_vantage_pro2_forecast') }}
+          {%- else -%}
+            {%- set k = lut[r] -%}
+            {{ (p1[k[0]] ~ ' ' ~ p2[k[1]] ~ ' ' ~ p3[k[2]]) | trim | replace('  ', ' ') }}
+          {%- endif -%}
+
+      - name: "Forecast Sentence"
+        unique_id: davis_forecast_sentence
+        icon: mdi:text-long
+        state: >-
+          {% set f = states('sensor.detailed_forecast') %}
+          {% set t = states('sensor.davis_vantage_pro2_barometer_trend') %}
+          {%- set f = f if f.endswith('.') else f ~ '.' -%}
+          {%- if t in ['Falling Rapidly','Falling Slowly','Rising Rapidly','Rising Slowly','Steady'] -%}
+            {{ f }} Barometer {{ t | lower }}.
+          {%- else -%}
+            {{ f }}
+          {%- endif -%}
+
+      # Console-style scrolling ticker text (alerts first, then forecast)
+      - name: "Weather Ticker"
+        unique_id: davis_weather_ticker
+        icon: mdi:message-text-outline
+        state: >
+          {% set rate = states('sensor.davis_vantage_pro2_rain_rate') | float(0) %}
+          {% set alarms = states('sensor.office_davis_vantage_pro2_active_alarms') %}
+          {% set ai = states('input_text.weather_ai_summary') %}
+          {% set ts = states.input_text.weather_ai_summary.last_changed %}
+          {% set ai_fresh = ts is not none and (now() - ts).total_seconds() < 2700 %}
+          {% if alarms not in ['None', 'unknown', 'unavailable', ''] %}
+            ALERT: {{ alarms }}
+          {% elif rate >= 0.31 %}
+            It's raining cats and dogs!
+          {% elif ai not in ['unknown', 'unavailable', ''] and ai | length > 0 and ai_fresh %}
+            {{ ai }}
+          {% else %}
+            {{ states('sensor.forecast_sentence') }}
+          {% endif %}
+
+  # 12-hour clock + friendly date, updated every minute (uses HA's time zone)
+  - trigger:
+      - platform: time_pattern
+        minutes: "*"
+      - platform: homeassistant
+        event: start
+    sensor:
+      - name: "Local Time"
+        unique_id: davis_local_time
+        icon: mdi:clock-outline
+        state: "{{ now().strftime('%-I:%M %p') }}"
+      - name: "Local Date"
+        unique_id: davis_local_date
+        icon: mdi:calendar
+        state: "{{ now().strftime('%A, %b %-d') }}"
+
+  # Peak wind today (resets at local midnight)
+  - trigger:
+      - platform: state
+        entity_id: sensor.davis_vantage_pro2_wind_speed
+      - platform: time
+        at: "00:00:00"
+      - platform: homeassistant
+        event: start
+    sensor:
+      - name: "Wind Gust Today"
+        unique_id: davis_wind_gust_today
+        unit_of_measurement: "mph"
+        device_class: wind_speed
+        state_class: measurement
+        icon: mdi:weather-windy
+        state: >
+          {% set raw = states('sensor.davis_vantage_pro2_wind_speed') | float(none) %}
+          {% set cur = raw if (raw is not none and raw <= 150) else none %}
+          {% set prev = this.state | float(0) %}
+          {% set prev = prev if prev <= 150 else 0 %}
+          {% if trigger.platform == 'time' %}
+            {{ cur | default(0) }}
+          {% elif cur is none %}
+            {{ prev }}
+          {% else %}
+            {{ [cur, prev] | max }}
+          {% endif %}
+
+  # Today's high & low outdoor temperature (reset at local midnight)
+  - trigger:
+      - platform: state
+        entity_id: sensor.davis_vantage_pro2_outside_temperature
+      - platform: time
+        at: "00:00:00"
+      - platform: homeassistant
+        event: start
+    sensor:
+      - name: "Temp High Low Today"
+        unique_id: davis_temp_highlow_today
+        icon: mdi:thermometer
+        state: >
+          {% set cur = states('sensor.davis_vantage_pro2_outside_temperature') | float(none) %}
+          {% if cur is none %}
+            {{ this.state }}
+          {% elif trigger.platform == 'time' %}
+            {{ cur | round | int }}° / {{ cur | round | int }}°
+          {% else %}
+            {% set h = [cur, this.attributes.high | default(cur) | float(cur)] | max %}
+            {% set l = [cur, this.attributes.low  | default(cur) | float(cur)] | min %}
+            {{ h | round | int }}° / {{ l | round | int }}°
+          {% endif %}
+        attributes:
+          high: >
+            {% set cur = states('sensor.davis_vantage_pro2_outside_temperature') | float(none) %}
+            {% if cur is none %}{{ this.attributes.high | default(0) }}
+            {% elif trigger.platform == 'time' %}{{ cur | round(1) }}
+            {% else %}{{ [cur, this.attributes.high | default(cur) | float(cur)] | max | round(1) }}{% endif %}
+          low: >
+            {% set cur = states('sensor.davis_vantage_pro2_outside_temperature') | float(none) %}
+            {% if cur is none %}{{ this.attributes.low | default(0) }}
+            {% elif trigger.platform == 'time' %}{{ cur | round(1) }}
+            {% else %}{{ [cur, this.attributes.low | default(cur) | float(cur)] | min | round(1) }}{% endif %}

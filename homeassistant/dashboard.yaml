@@ -1,0 +1,939 @@
+title: Weather
+views:
+  - title: Mobile
+    path: mobile
+    icon: mdi:cellphone
+    type: sections
+    max_columns: 1
+    sections:
+      - type: grid
+        cards:
+          - type: markdown
+            content: >-
+              <center><h1>{{ now().strftime('%a&nbsp;%b&nbsp;%-d,
+              %-I:%M&nbsp;%p')}}
+            grid_options:
+              columns: 12
+              rows: auto
+          - type: markdown
+            content: "**Ticker** — {{ states('sensor.weather_ticker') }}"
+            grid_options:
+              columns: 12
+              rows: auto
+          - type: glance
+            entities:
+              - entity: sensor.davis_vantage_pro2_forecast
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+              - entity: sensor.davis_vantage_pro2_outside_humidity
+          - type: tile
+            entity: sensor.temp_high_low_today
+            vertical: false
+            features_position: bottom
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: tile
+            entity: sensor.sun_next
+            color: accent
+            vertical: false
+            features_position: bottom
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: tile
+            entity: sensor.moon_phase
+            color: grey
+            name: ""
+            vertical: false
+            features_position: bottom
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: tile
+            entity: sensor.davis_vantage_pro2_transmitter_battery_low
+            color: red
+            vertical: false
+            features_position: bottom
+            grid_options:
+              columns: 6
+              rows: 1
+      - type: grid
+        cards:
+          - type: heading
+            heading: Current Conditions
+            heading_style: title
+          - type: tile
+            entity: sensor.davis_vantage_pro2_outside_temperature
+            features:
+              - type: trend-graph
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.davis_vantage_pro2_outside_humidity
+            features:
+              - type: bar-gauge
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.dew_point
+            icon: mdi:thermometer-water
+            vertical: false
+            features_position: bottom
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: tile
+            entity: sensor.wind_chill
+            icon: mdi:thermometer-lines
+            vertical: false
+            features_position: bottom
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: tile
+            entity: sensor.davis_vantage_pro2_inside_temperature
+            features:
+              - type: trend-graph
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.davis_vantage_pro2_inside_humidity
+            features:
+              - type: bar-gauge
+            vertical: false
+            features_position: bottom
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            grid_options:
+              columns: 12
+              rows: 1
+            entity: sensor.barometer_trend_display
+            vertical: false
+            features_position: bottom
+      - type: grid
+        cards:
+          - type: heading
+            heading: Wind
+            heading_style: title
+          - type: tile
+            entity: sensor.wind_gust_today
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.davis_vantage_pro2_wind_speed_10_min_avg
+            features:
+              - type: trend-graph
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.wind_cardinal
+            grid_options:
+              columns: 12
+              rows: 1
+      - type: grid
+        cards:
+          - type: heading
+            heading: Rain
+            heading_style: title
+          - type: tile
+            entity: sensor.davis_vantage_pro2_rain_today
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.davis_vantage_pro2_rain_rate
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_rain_this_month
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.davis_vantage_pro2_storm_rain
+            icon: mdi:weather-lightning
+            vertical: false
+            features_position: bottom
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_storm_start_date
+            grid_options:
+              columns: 12
+              rows: 1
+      - type: grid
+        cards:
+          - type: heading
+            heading: Compass & Barometer
+            heading_style: title
+          - type: custom:stack-in-card
+            cards:
+              - type: picture-elements
+                image: /local/davis_compass.svg
+                elements:
+                  - type: state-icon
+                    entity: sensor.davis_vantage_pro2_wind_direction
+                    icon: mdi:navigation
+                    style:
+                      top: 50%
+                      left: 50%
+                      color: var(--primary-color)
+                      "--mdc-icon-size": 64px
+                    card_mod:
+                      style: |
+                        :host {
+                          transform: translate(-50%, -50%)
+                                     rotate({{ states('sensor.davis_vantage_pro2_wind_direction') | int(0) }}deg)
+                                     translateY(-140px) !important;
+                          transition: transform 1.2s ease-in-out;
+                        }
+                  - type: state-label
+                    entity: sensor.davis_vantage_pro2_wind_speed
+                    style:
+                      top: 45%
+                      left: 50%
+                      font-size: 34px
+                      font-weight: "700"
+                      color: var(--primary-text-color)
+                  - type: state-label
+                    entity: sensor.wind_cardinal
+                    style:
+                      top: 62%
+                      left: 50%
+                      font-size: 20px
+                      font-weight: "600"
+                      color: var(--secondary-text-color)
+          - type: custom:stack-in-card
+            cards:
+              - type: custom:mini-graph-card
+                name: Barometer · 24h
+                hours_to_show: 24
+                points_per_hour: 6
+                line_width: 3
+                entities:
+                  - entity: sensor.davis_vantage_pro2_barometer
+                show:
+                  extrema: true
+                  state: true
+      - type: grid
+        cards:
+          - type: heading
+            heading: System
+            heading_style: title
+          - type: tile
+            entity: sensor.davis_vantage_pro2_console_battery
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_active_alarms
+            color: deep-purple
+            vertical: false
+            features_position: bottom
+            grid_options:
+              columns: 6
+              rows: 1
+  - title: History
+    path: history
+    icon: mdi:chart-line
+    type: sections
+    max_columns: 4
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Live — last 24 hours
+            heading_style: title
+          - type: history-graph
+            hours_to_show: 24
+            title: Temperature
+            entities:
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+                name: Outside
+              - entity: sensor.davis_vantage_pro2_inside_temperature
+                name: Inside
+          - type: history-graph
+            entities:
+              - entity: sensor.davis_vantage_pro2_wind_speed
+                name: Wind
+            title: Wind
+            hours_to_show: 24
+          - type: history-graph
+            entities:
+              - entity: sensor.davis_vantage_pro2_outside_humidity
+                name: Humidity
+            title: Humidity
+            hours_to_show: 24
+          - type: history-graph
+            entities:
+              - entity: sensor.davis_vantage_pro2_barometer
+            title: Barometer
+          - type: history-graph
+            entities:
+              - entity: sensor.davis_vantage_pro2_rain_today
+                name: Rain Today
+            title: Rain
+            hours_to_show: 24
+        column_span: 2
+      - type: grid
+        cards:
+          - type: heading
+            heading: Last 7 Days
+            heading_style: title
+          - type: statistics-graph
+            title: Temperature (7d)
+            chart_type: line
+            period: day
+            days_to_show: 7
+            stat_types:
+              - mean
+              - min
+              - max
+            entities:
+              - sensor.davis_vantage_pro2_outside_temperature
+          - type: statistics-graph
+            title: Wind (7d)
+            chart_type: line
+            period: day
+            days_to_show: 7
+            stat_types:
+              - max
+              - mean
+            entities:
+              - sensor.davis_vantage_pro2_wind_speed
+          - type: statistics-graph
+            title: Barometer (7d)
+            chart_type: line
+            period: day
+            days_to_show: 7
+            stat_types:
+              - mean
+              - min
+              - max
+            entities:
+              - sensor.davis_vantage_pro2_barometer
+      - type: grid
+        cards:
+          - type: heading
+            heading: Last 30 Days
+            heading_style: title
+          - type: statistics-graph
+            title: Temperature (30d)
+            chart_type: line
+            period: day
+            days_to_show: 30
+            stat_types:
+              - mean
+              - min
+              - max
+            entities:
+              - sensor.davis_vantage_pro2_outside_temperature
+          - type: statistics-graph
+            title: Humidity (30d)
+            chart_type: line
+            period: day
+            days_to_show: 30
+            stat_types:
+              - mean
+              - min
+              - max
+            entities:
+              - sensor.davis_vantage_pro2_outside_humidity
+          - type: statistics-graph
+            title: Barometer (30d)
+            chart_type: line
+            period: day
+            days_to_show: 30
+            stat_types:
+              - mean
+              - min
+              - max
+            entities:
+              - sensor.davis_vantage_pro2_barometer
+    cards: []
+  - title: Records
+    path: records
+    icon: mdi:trophy-outline
+    type: sections
+    max_columns: 4
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Yearly (2005 → now)
+            heading_style: title
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: Record High Temperature
+            graph_span: 8030d
+            apex_config:
+              chart:
+                height: 260
+              markers:
+                size: 6
+            series:
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+                name: Archive
+                color: var(--primary-color)
+                type: line
+                stroke_width: 0
+                extend_to: false
+                data_generator: |
+                  const res = await hass.callWS({
+                    type: 'recorder/statistics_during_period',
+                    start_time: new Date('2004-01-01T00:00:00').toISOString(),
+                    statistic_ids: ['weather:year_temp_high'],
+                    period: 'month',
+                  });
+                  const curY = new Date().getFullYear();
+                  const a = res['weather:year_temp_high'] || [];
+                  return a.map(x => {
+                    const t = (typeof x.start === 'number') ? x.start : new Date(x.start).getTime();
+                    return [t, x.max];
+                  }).filter(p => p[0] < Date.UTC(new Date().getFullYear(), 0, 1));
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+                name: Live
+                color: var(--accent-color)
+                type: line
+                stroke_width: 0
+                extend_to: false
+                data_generator: |
+                  const res = await hass.callWS({
+                    type: 'recorder/statistics_during_period',
+                    start_time: new Date('2020-01-01T00:00:00').toISOString(),
+                    statistic_ids: ['sensor.davis_vantage_pro2_outside_temperature'],
+                    period: 'day',
+                  });
+                  const a = res['sensor.davis_vantage_pro2_outside_temperature'] || [];
+                  const byY = {};
+                  for (const x of a) {
+                    if (x.max == null) continue;
+                    const t = (typeof x.start === 'number') ? x.start : new Date(x.start).getTime();
+                    const y = new Date(t).getFullYear();
+                    if (!byY[y] || x.max > byY[y][1]) byY[y] = [t, x.max];
+                  }
+                  return Object.values(byY).sort((p,q) => p[0]-q[0]);
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: Record Low Temperature
+            graph_span: 8030d
+            apex_config:
+              chart:
+                height: 260
+              markers:
+                size: 6
+            series:
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+                name: Archive
+                color: var(--primary-color)
+                type: line
+                stroke_width: 0
+                extend_to: false
+                data_generator: |
+                  const res = await hass.callWS({
+                    type: 'recorder/statistics_during_period',
+                    start_time: new Date('2004-01-01T00:00:00').toISOString(),
+                    statistic_ids: ['weather:year_temp_low'],
+                    period: 'month',
+                  });
+                  const curY = new Date().getFullYear();
+                  const a = res['weather:year_temp_low'] || [];
+                  return a.map(x => {
+                    const t = (typeof x.start === 'number') ? x.start : new Date(x.start).getTime();
+                    return [t, x.min];
+                  }).filter(p => p[0] < Date.UTC(new Date().getFullYear(), 0, 1));
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+                name: Live
+                color: var(--accent-color)
+                type: line
+                stroke_width: 0
+                extend_to: false
+                data_generator: |
+                  const res = await hass.callWS({
+                    type: 'recorder/statistics_during_period',
+                    start_time: new Date('2020-01-01T00:00:00').toISOString(),
+                    statistic_ids: ['sensor.davis_vantage_pro2_outside_temperature'],
+                    period: 'day',
+                  });
+                  const a = res['sensor.davis_vantage_pro2_outside_temperature'] || [];
+                  const byY = {};
+                  for (const x of a) {
+                    if (x.min == null) continue;
+                    const t = (typeof x.start === 'number') ? x.start : new Date(x.start).getTime();
+                    const y = new Date(t).getFullYear();
+                    if (!byY[y] || x.min < byY[y][1]) byY[y] = [t, x.min];
+                  }
+                  return Object.values(byY).sort((p,q) => p[0]-q[0]);
+          - type: statistics-graph
+            title: Total Rainfall per Year
+            chart_type: bar
+            period: month
+            days_to_show: 8030
+            stat_types:
+              - max
+              - state
+            entities:
+              - entity: weather:year_rain_total
+                name: Archive
+              - entity: sensor.office_davis_vantage_pro2_rain_this_year
+                name: Live
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: Peak Wind per Year
+            graph_span: 8030d
+            apex_config:
+              chart:
+                height: 260
+              markers:
+                size: 6
+            series:
+              - entity: sensor.davis_vantage_pro2_wind_speed
+                name: Archive
+                color: var(--primary-color)
+                type: line
+                stroke_width: 0
+                extend_to: false
+                data_generator: |
+                  const res = await hass.callWS({
+                    type: 'recorder/statistics_during_period',
+                    start_time: new Date('2004-01-01T00:00:00').toISOString(),
+                    statistic_ids: ['weather:year_wind_high'],
+                    period: 'month',
+                  });
+                  const curY = new Date().getFullYear();
+                  const a = res['weather:year_wind_high'] || [];
+                  return a.map(x => {
+                    const t = (typeof x.start === 'number') ? x.start : new Date(x.start).getTime();
+                    return [t, x.max];
+                  }).filter(p => p[0] < Date.UTC(new Date().getFullYear(), 0, 1));
+              - entity: sensor.davis_vantage_pro2_wind_speed
+                name: Live
+                color: var(--accent-color)
+                type: line
+                stroke_width: 0
+                extend_to: false
+                data_generator: |
+                  const res = await hass.callWS({
+                    type: 'recorder/statistics_during_period',
+                    start_time: new Date('2020-01-01T00:00:00').toISOString(),
+                    statistic_ids: ['sensor.davis_vantage_pro2_wind_speed'],
+                    period: 'day',
+                  });
+                  const a = res['sensor.davis_vantage_pro2_wind_speed'] || [];
+                  const byY = {};
+                  for (const x of a) {
+                    if (x.max == null) continue;
+                    const t = (typeof x.start === 'number') ? x.start : new Date(x.start).getTime();
+                    const y = new Date(t).getFullYear();
+                    if (!byY[y] || x.max > byY[y][1]) byY[y] = [t, x.max];
+                  }
+                  return Object.values(byY).sort((p,q) => p[0]-q[0]);
+      - type: grid
+        cards:
+          - type: heading
+            heading: Monthly (Jun 2024 → now)
+            heading_style: title
+          - type: statistics-graph
+            title: Monthly High Temperature
+            chart_type: line
+            period: month
+            days_to_show: 1200
+            stat_types:
+              - max
+            entities:
+              - entity: weather:month_temp_high
+                name: Archive
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+                name: Live
+          - type: statistics-graph
+            title: Monthly Low Temperature
+            chart_type: line
+            period: month
+            days_to_show: 1200
+            stat_types:
+              - min
+            entities:
+              - entity: weather:month_temp_low
+                name: Archive
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+                name: Live
+          - type: statistics-graph
+            title: Monthly Rainfall
+            chart_type: bar
+            period: month
+            days_to_show: 1200
+            stat_types:
+              - max
+              - state
+            entities:
+              - entity: weather:month_rain_total
+                name: Archive
+              - entity: sensor.office_davis_vantage_pro2_rain_this_month
+                name: Live
+          - type: statistics-graph
+            title: Monthly Avg Barometer
+            chart_type: line
+            period: month
+            days_to_show: 1200
+            stat_types:
+              - mean
+            entities:
+              - entity: weather:month_baro_avg
+                name: Archive
+              - entity: sensor.davis_vantage_pro2_barometer
+                name: Live
+          - type: statistics-graph
+            title: Monthly Humidity High / Low
+            chart_type: line
+            period: month
+            days_to_show: 1200
+            stat_types:
+              - max
+              - min
+            entities:
+              - entity: weather:month_hum_high
+                name: Archive High
+              - entity: weather:month_hum_low
+                name: Archive Low
+              - entity: sensor.davis_vantage_pro2_outside_humidity
+                name: Live
+      - type: grid
+        cards:
+          - type: heading
+            heading: Daily
+            heading_style: title
+          - type: statistics-graph
+            title: Daily High Temperature
+            chart_type: line
+            period: day
+            days_to_show: 60
+            stat_types:
+              - max
+            entities:
+              - entity: weather:day_temp_high
+                name: Archive
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+                name: Live
+          - type: statistics-graph
+            title: Daily Low Temperature
+            chart_type: line
+            period: day
+            days_to_show: 60
+            stat_types:
+              - min
+            entities:
+              - entity: weather:day_temp_low
+                name: Archive
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+                name: Live
+          - type: statistics-graph
+            title: Daily Peak Wind
+            chart_type: line
+            period: day
+            days_to_show: 60
+            stat_types:
+              - max
+            entities:
+              - entity: weather:day_wind_high
+                name: Archive
+              - entity: sensor.davis_vantage_pro2_wind_speed
+                name: Live
+      - type: grid
+        cards:
+          - type: heading
+            heading: Hourly
+            heading_style: title
+          - type: statistics-graph
+            title: Hourly Temperature
+            chart_type: line
+            period: hour
+            days_to_show: 5
+            stat_types:
+              - mean
+            entities:
+              - entity: weather:hour_temp
+                name: Archive
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+                name: Live
+          - type: statistics-graph
+            title: Hourly Barometer
+            chart_type: line
+            period: hour
+            days_to_show: 5
+            stat_types:
+              - mean
+            entities:
+              - entity: weather:hour_barometer
+                name: Archive
+              - entity: sensor.davis_vantage_pro2_barometer
+                name: Live
+          - type: statistics-graph
+            title: Hourly Peak Wind
+            chart_type: line
+            period: hour
+            days_to_show: 5
+            stat_types:
+              - max
+            entities:
+              - entity: weather:hour_wind_high
+                name: Archive
+              - entity: sensor.davis_vantage_pro2_wind_speed
+                name: Live
+    cards: []
+  - title: Console
+    icon: mdi:gauge
+    cards: []
+    type: sections
+    sections:
+      - type: grid
+        cards:
+          - type: glance
+            entities:
+              - entity: sensor.davis_vantage_pro2_forecast
+              - entity: sensor.davis_vantage_pro2_outside_temperature
+              - entity: sensor.davis_vantage_pro2_outside_humidity
+          - type: custom:stack-in-card
+            cards:
+              - type: picture-elements
+                image: /local/davis_compass.svg
+                elements:
+                  - type: state-icon
+                    entity: sensor.davis_vantage_pro2_wind_direction
+                    icon: mdi:navigation
+                    style:
+                      top: 50%
+                      left: 50%
+                      color: var(--primary-color)
+                      "--mdc-icon-size": 64px
+                    card_mod:
+                      style: |
+                        :host {
+                          transform: translate(-50%, -50%)
+                                     rotate({{ states('sensor.davis_vantage_pro2_wind_direction') | int(0) }}deg)
+                                     translateY(-140px) !important;
+                          transition: transform 1.2s ease-in-out;
+                        }
+                  - type: state-label
+                    entity: sensor.davis_vantage_pro2_wind_speed
+                    style:
+                      top: 45%
+                      left: 50%
+                      font-size: 34px
+                      font-weight: "700"
+                      color: var(--primary-text-color)
+                  - type: state-label
+                    entity: sensor.wind_cardinal
+                    style:
+                      top: 62%
+                      left: 50%
+                      font-size: 20px
+                      font-weight: "600"
+                      color: var(--secondary-text-color)
+          - type: custom:stack-in-card
+            cards:
+              - type: custom:mini-graph-card
+                name: Barometer · 24h
+                hours_to_show: 24
+                points_per_hour: 6
+                line_width: 3
+                entities:
+                  - entity: sensor.davis_vantage_pro2_barometer
+                show:
+                  extrema: true
+                  state: true
+      - type: grid
+        cards:
+          - type: tile
+            grid_options:
+              columns: 6
+              rows: 1
+            entity: sensor.temp_high_low_today
+            vertical: false
+            features_position: bottom
+          - type: tile
+            entity: sensor.moon_phase
+            color: grey
+            vertical: false
+            features_position: bottom
+            name: ""
+          - type: tile
+            entity: sensor.local_date
+          - type: clock
+          - type: markdown
+            content: "**Ticker** — {{ states('sensor.weather_ticker') }}"
+            grid_options:
+              columns: 24
+              rows: auto
+          - type: tile
+            entity: sensor.davis_vantage_pro2_outside_temperature
+            features:
+              - type: trend-graph
+            grid_options:
+              columns: 9
+              rows: 2
+          - type: tile
+            entity: sensor.davis_vantage_pro2_outside_humidity
+            features:
+              - type: bar-gauge
+            grid_options:
+              columns: 9
+              rows: 2
+          - type: tile
+            grid_options:
+              columns: 6
+              rows: 2
+            entity: sensor.barometer_trend_display
+            vertical: false
+            features_position: bottom
+          - type: tile
+            entity: sensor.davis_vantage_pro2_inside_temperature
+            features:
+              - type: trend-graph
+            grid_options:
+              columns: 9
+              rows: 2
+          - type: tile
+            grid_options:
+              columns: 9
+              rows: 2
+            entity: sensor.davis_vantage_pro2_inside_humidity
+            vertical: false
+            features:
+              - type: bar-gauge
+            features_position: bottom
+          - type: tile
+            entity: sensor.dew_point
+            icon: mdi:thermometer-water
+            vertical: false
+            features_position: bottom
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.davis_vantage_pro2_rain_today
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.davis_vantage_pro2_rain_rate
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_rain_this_month
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.davis_vantage_pro2_storm_rain
+            icon: mdi:weather-lightning
+            vertical: false
+            features_position: bottom
+            grid_options:
+              columns: 6
+              rows: 1
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_storm_start_date
+          - type: tile
+            entity: sensor.wind_gust_today
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: sensor.davis_vantage_pro2_wind_speed_10_min_avg
+            features:
+              - type: trend-graph
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            grid_options:
+              columns: 6
+              rows: 2
+            entity: sensor.wind_chill
+            icon: mdi:thermometer-lines
+            vertical: false
+            features_position: bottom
+          - type: tile
+            grid_options:
+              columns: 6
+              rows: 1
+            entity: sensor.davis_vantage_pro2_transmitter_battery_low
+            color: red
+            vertical: false
+            features_position: bottom
+          - type: tile
+            entity: sensor.davis_vantage_pro2_console_battery
+          - type: tile
+            grid_options:
+              columns: 6
+              rows: 1
+            entity: sensor.sun_next
+            color: accent
+            vertical: false
+            features_position: bottom
+          - type: tile
+            grid_options:
+              columns: 6
+              rows: 1
+            entity: sensor.office_davis_vantage_pro2_active_alarms
+            color: deep-purple
+            vertical: false
+            features_position: bottom
+        column_span: 2
+  - type: sections
+    max_columns: 4
+    title: Debug
+    path: debug
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Davis Vantage Pro2
+          - type: tile
+            grid_options:
+              columns: full
+              rows: auto
+            entity: input_text.weather_ai_summary
+            vertical: false
+            features_position: bottom
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_bridge_free_memory
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_bridge_last_status
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_bridge_read_failures
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_bridge_uptime
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_bridge_wifi_signal
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_forecast_rule
+          - type: tile
+            entity: sensor.detailed_forecast
+            grid_options:
+              columns: 12
+              rows: 1
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_bridge_ap_bssid
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_bridge_ip_address
+          - type: tile
+            entity: sensor.office_davis_vantage_pro2_bridge_wifi_channel
+          - type: tile
+            entity: ai_task.ollama_ai_task
+          - type: tile
+            entity: sensor.davis_vantage_pro2_forecast
+        column_span: 1
