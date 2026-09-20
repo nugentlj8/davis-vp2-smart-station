@@ -24,6 +24,11 @@ You do **not** need the $235 logger or any level shifter.
 The expansion port is on the **back of the console, under the cover** (the slot the logger would plug into).
 All three signals are 3.3 V, so a direct connection is safe.
 
+![Davis Vantage Pro2 expansion connector pinout](vp2-expansion-pinout.jpg)
+
+The connector is a 2x10 header, numbered as shown **from the back of the unit** — odd pins on the
+bottom row, even pins on the top. Only three of the twenty matter here:
+
 | Console expansion port | → | ESP32-S3 | Meaning |
 |---|---|---|---|
 | Pin 6 — TXD0 (console transmit) | → | **GPIO 18** (RX) | Console talks, ESP listens |
@@ -36,8 +41,9 @@ Rules:
 - **If you get no data, swap the two data wires** (RX↔TX). It's harmless — TX/RX labeling trips everyone up,
   and a swap can't damage anything at 3.3 V.
 
-> Pin numbering on these small headers is easy to misread. If unsure, confirm the console TX/GND pins
-> against a known VP2 expansion-port pinout photo before soldering. Worst case of a wrong *data* pin is
+> Pin numbering on these small headers is easy to misread — count against the diagram above, and note
+> that it is drawn as seen from the **back** of the console, so the rows mirror if you look from the front.
+> Double-check **GND** in particular before soldering. Worst case of a wrong *data* pin is
 > "no readings," not damage — but get **GND** right.
 
 ---
