@@ -26,6 +26,11 @@ All three signals are 3.3 V, so a direct connection is safe.
 
 ![Davis Vantage Pro2 expansion connector pinout](vp2-expansion-pinout.jpg)
 
+<sub>Pinout diagram by DeKay, from
+[“Davis Weatherlink Software Not Required!!!!”](https://madscientistlabs.blogspot.com/2011/01/davis-weatherlink-software-not-required.html)
+(Mad Scientist Labs, 23 Jan 2011) — the post that first documented this port publicly. Reproduced here
+for reference; not covered by this repository's MIT license.</sub>
+
 The connector is a 2x10 header, numbered as shown **from the back of the unit** — odd pins on the
 bottom row, even pins on the top. Only three of the twenty matter here:
 

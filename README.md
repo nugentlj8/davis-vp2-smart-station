@@ -107,7 +107,23 @@ engineering · Cloudflare Zero Trust remote access · Docker · rclone backups.
 
 Built by Lucas Nugent. Electrical engineering student · embedded / IoT hobbyist.
 
+## Acknowledgements
+
+This project stands on prior reverse-engineering work by the weather-station community:
+
+- **DeKay** — [“Davis Weatherlink Software Not Required!!!!”](https://madscientistlabs.blogspot.com/2011/01/davis-weatherlink-software-not-required.html)
+  (Mad Scientist Labs, 2011), which first publicly documented the VP2 expansion port. The pinout
+  diagram in `docs/hardware-setup.md` is from that post.
+- **CumulusMX** — the `forecast_rule` lookup table and forecast phrase list used by the
+  “Detailed Forecast” template sensor.
+- **Davis Instruments** — the published *Vantage Pro2 Serial Communication Reference Manual*,
+  which documents the LOOP packet layout and CRC.
+
+Third-party material is credited where it appears and is not covered by this repository's license.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
-EOF
+
+The MIT license covers the code and documentation written for this project. It does not extend to
+the third-party diagram and lookup tables noted under Acknowledgements.
