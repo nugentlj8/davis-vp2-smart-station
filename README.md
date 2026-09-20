@@ -75,24 +75,102 @@ Total added cost: a few dollars. **Avoided:** the $235 Davis data logger.
 ## Repo layout
 
 ```
-firmware/davis_vp2_bridge/   ESP32 Arduino firmware (the serial→MQTT bridge)
-homeassistant/               template sensors, automation, dashboard, compass SVG
-scripts/                     history importer + backup script
-docs/                        hardware wiring, AI ticker setup, data cleanup, backups
-data/                        historical-data format notes
+firmware/davis_vp2_bridge/
+    davis_vp2_bridge.ino        ESP32 firmware — the serial→MQTT bridge
+homeassistant/
+    configuration_helpers.yaml  template sensors (paste into configuration.yaml)
+    ai_ticker_automation.yaml   the local-LLM ticker automation
+    dashboard.yaml              Mobile / Desktop / Records views
+    www/davis_compass.svg       wind compass face → copy to HA's config/www/
+scripts/
+    import_history_to_ha.py     spreadsheet → HA long-term statistics
+    ha_backup_to_gdrive.ps1     nightly rclone backup to Google Drive
+    requirements.txt            Python deps for the importer
+docs/                           wiring, AI ticker, data cleanup, backups
+data/README.md                  expected workbook format for the importer
 ```
+
+## Requirements
+
+**Hardware** — see the [Hardware](#hardware) table above. The one hard requirement is a
+Davis Vantage Pro2 console with **pre-2012 firmware**; Davis locked the serial port on later
+units. Check yours under *Setup → Receiving → Version*.
+
+**Software**
+
+| For | You need |
+|---|---|
+| Firmware | Arduino IDE, the **esp32** board core (Espressif), and the **PubSubClient** library (Nick O'Leary) |
+| Home Assistant | Any HA install, plus an MQTT broker (the **Mosquitto** add-on is easiest) and the **MQTT integration** |
+| Dashboard | Four [HACS](https://hacs.xyz) frontend cards — see below |
+| History import (optional) | Python 3.9+ and `pip install -r scripts/requirements.txt` |
+| AI ticker (optional) | [Ollama](https://ollama.com) on any machine with a ~6 GB GPU, plus the NWS integration (US) or Met.no |
+| Backups (optional) | [rclone](https://rclone.org), and HA running under Docker on Windows |
+
+**HACS cards required by `dashboard.yaml`** — install all four before importing it, or the
+dashboard will render as a column of *"Custom element doesn't exist"* errors:
+
+- [`apexcharts-card`](https://github.com/RomRider/apexcharts-card) — the archive-vs-live record charts
+- [`stack-in-card`](https://github.com/custom-cards/stack-in-card) — the grouped card layouts
+- [`mini-graph-card`](https://github.com/kalkih/mini-graph-card) — the inline sparklines
+- [`card-mod`](https://github.com/thomasloven/lovelace-card-mod) — rotates the wind compass needle
+
+---
 
 ## Setup
 
-1. **Flash the firmware** — `docs/hardware-setup.md` (wiring + Arduino IDE).
-2. **Home Assistant** — MQTT/Mosquitto, then paste `configuration_helpers.yaml`
-   into `configuration.yaml` and the dashboard into a Sections dashboard.
-3. **Import history** (optional) — `scripts/import_history_to_ha.py`
-   (see `data/README.md` for the spreadsheet format).
-4. **AI ticker** (optional) — `docs/ai-ticker-setup.md` (Ollama + NWS).
+1. **Flash the firmware** — wiring and Arduino IDE steps in
+   [`docs/hardware-setup.md`](docs/hardware-setup.md). Edit the `USER CONFIG` block at the top of
+   `davis_vp2_bridge.ino` first: `WIFI_SSID`, `WIFI_PASS`, `MQTT_HOST`, and MQTT credentials.
+   On success the serial monitor prints a line of JSON every ~2.5 s.
 
-Configuration values in the code (Wi-Fi, MQTT host, HA token, station entity IDs)
-are placeholders — replace them with your own.
+2. **Home Assistant** — install and start the Mosquitto broker, then confirm the MQTT
+   integration is present. Once the ESP32 is running, a device named **Davis Vantage Pro2**
+   appears automatically under *Settings → Devices & Services → MQTT*. No YAML needed for
+   the sensors themselves — it's all auto-discovery.
+
+   > **Don't rename the device in HA.** Every config file here refers to entities as
+   > `sensor.davis_vantage_pro2_*`. Renaming the device regenerates those entity IDs and
+   > silently breaks the template sensors and dashboard.
+
+3. **Template sensors** — merge [`homeassistant/configuration_helpers.yaml`](homeassistant/configuration_helpers.yaml)
+   into your `configuration.yaml`. It defines `template:`, `input_text:`, and `binary_sensor:`
+   blocks; if you already have any of those keys, merge the entries under your existing block
+   rather than adding a second key. Then *Developer Tools → YAML → Check Configuration* → restart.
+
+4. **Compass image** — copy [`homeassistant/www/davis_compass.svg`](homeassistant/www/davis_compass.svg)
+   into your HA config folder at `config/www/davis_compass.svg`. HA serves that folder at `/local/`,
+   which is where the dashboard looks for it. Create `config/www/` if it doesn't exist, and restart
+   HA once after adding the folder for the first time.
+
+5. **Dashboard** — install the four HACS cards listed above, then create a new dashboard,
+   switch it to **Sections** layout, open the raw YAML editor (⋮ → *Edit in YAML*), and paste
+   [`homeassistant/dashboard.yaml`](homeassistant/dashboard.yaml). It ships Mobile, Desktop, and
+   Records views.
+
+6. **Import history** *(optional)* — `pip install -r scripts/requirements.txt`, create a
+   long-lived access token in HA (*your profile → Security → Long-lived access tokens*), set
+   `HA_HOST`, `TOKEN`, and `TZ_OFFSET` at the top of
+   [`scripts/import_history_to_ha.py`](scripts/import_history_to_ha.py), then run it. See
+   [`data/README.md`](data/README.md) for the workbook format.
+
+7. **AI ticker** *(optional)* — [`docs/ai-ticker-setup.md`](docs/ai-ticker-setup.md) covers Ollama,
+   the NWS integration, and the automation in
+   [`homeassistant/ai_ticker_automation.yaml`](homeassistant/ai_ticker_automation.yaml).
+
+8. **Backups** *(optional)* — [`docs/backup-setup.md`](docs/backup-setup.md) sets up the nightly
+   rclone job to Google Drive.
+
+Every credential and host in this repo is a placeholder — `YOUR_WIFI_SSID`, `192.168.1.100`,
+`PASTE_YOUR_HA_LONG_LIVED_ACCESS_TOKEN_HERE`, `weather.nws_YOURSTATION`. Replace them with
+your own; none of them are real.
+
+### Troubleshooting
+
+`docs/hardware-setup.md` has a fuller table, but the two most common first-run problems:
+**no data at all** → swap the RX/TX wires (harmless at 3.3 V, and the labels trip everyone up);
+**constant CRC failures** → check the ground connection and confirm the console is on its main
+display, not a setup screen.
 
 ---
 

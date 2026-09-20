@@ -66,8 +66,8 @@ WHERE metadata_id IN (
     'sensor.davis_vantage_pro2_rain_rate',
     'sensor.davis_vantage_pro2_rain_today',
     'sensor.davis_vantage_pro2_storm_rain',
-    'sensor.office_davis_vantage_pro2_rain_this_month',
-    'sensor.office_davis_vantage_pro2_rain_this_year'
+    'sensor.davis_vantage_pro2_rain_this_month',
+    'sensor.davis_vantage_pro2_rain_this_year'
   )
 )
 AND (max >= 50 OR mean >= 50 OR state >= 50 OR sum >= 500);
@@ -78,8 +78,8 @@ WHERE metadata_id IN (
     'sensor.davis_vantage_pro2_rain_rate',
     'sensor.davis_vantage_pro2_rain_today',
     'sensor.davis_vantage_pro2_storm_rain',
-    'sensor.office_davis_vantage_pro2_rain_this_month',
-    'sensor.office_davis_vantage_pro2_rain_this_year'
+    'sensor.davis_vantage_pro2_rain_this_month',
+    'sensor.davis_vantage_pro2_rain_this_year'
   )
 )
 AND (max >= 50 OR mean >= 50 OR state >= 50 OR sum >= 500);

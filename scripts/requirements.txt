@@ -1,0 +1,4 @@
+# Dependencies for import_history_to_ha.py
+#   pip install -r scripts/requirements.txt
+openpyxl>=3.1          # reads the Weather_History_Log.xlsx workbook
+websocket-client>=1.6  # talks to the Home Assistant websocket API

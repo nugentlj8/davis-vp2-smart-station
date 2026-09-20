@@ -14,7 +14,8 @@
  *   - Marks itself "offline" (MQTT availability) when stalled, so HA
  *     shows entities as unavailable instead of frozen values.
  *
- * Board: "ESP32 Dev Module".  Library: PubSubClient (Nick O'Leary).
+ * Board: any ESP32 (developed on an ESP32-S3 Dev Module).
+ * Library: PubSubClient (Nick O'Leary).
  */
 
 #include <WiFi.h>

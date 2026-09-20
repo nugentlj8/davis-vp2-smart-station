@@ -5,7 +5,7 @@
 #  zips the config folder, restarts HA, uploads the zip to Google Drive
 #  with rclone, and prunes old backups (local + remote).
 #
-#  ONE-TIME SETUP:  see ha_backup_SETUP.md
+#  ONE-TIME SETUP:  see docs/backup-setup.md
 # =====================================================================
 
 # ----------------------- EDIT THESE -----------------------

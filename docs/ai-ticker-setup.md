@@ -1,10 +1,11 @@
-# AI Weather Ticker — Setup (Phase 1)
+# AI Weather Ticker — Setup
 
 Goal: every ~20 min, a small local LLM reads your live Davis data + a real NWS
 forecast and writes a friendly 1–2 sentence ticker line ("Hot and dry at 99°F,
 humidity down to 11% — bring water, the calm holds into the evening").
 
-Runs **locally on your RTX 2060 Super** via Ollama. Free, private, offline.
+Runs **locally** via Ollama — free, private, no cloud API. Developed on an RTX 2060 Super (6 GB);
+any GPU with ~6 GB of VRAM will do, and CPU-only works too if you don't mind slower replies.
 
 ---
 
@@ -19,7 +20,7 @@ Runs **locally on your RTX 2060 Super** via Ollama. Free, private, offline.
      `ollama pull qwen2.5:7b`  (or `ollama pull llama3.1:8b`)
 4. Test it: `ollama run llama3.2:3b "Say hello in one sentence."`
 
-> Your GPU is used automatically. A 3B model answers in ~1–2 s; a 7–8B in a few
+> The GPU is used automatically. A 3B model answers in ~1–2 s; a 7–8B in a few
 > seconds. Either is fine for a 20-minute cadence.
 
 ### Let Home Assistant reach Ollama
@@ -70,6 +71,12 @@ falls back to the decoded forecast sentence when it's empty.)
 
 Settings → Automations → Create → (top-right menu) **Edit in YAML**, paste this,
 and fix the two names marked `# <-- EDIT`:
+
+> This is the **minimal** version, kept short so the moving parts are visible.
+> [`../homeassistant/ai_ticker_automation.yaml`](../homeassistant/ai_ticker_automation.yaml)
+> is the version actually running: it adds NWS alert handling, rain-intensity branches,
+> a temperature-band calibration table, and anti-repetition rules. Start here to confirm
+> the plumbing works, then swap in the full one.
 
 ```yaml
 alias: Weather AI ticker summary
@@ -140,9 +147,9 @@ the new line within a few seconds.
 
 ---
 
-## Phase 2 (next) — historical context
-A small scheduled script reads your long-term statistics (the `weather:*` history
-you imported) and writes a compact comparison line into another helper, e.g.
+## Possible extension — historical context
+A scheduled script could read the long-term statistics (the `weather:*` history from
+the importer) and write a compact comparison into a second helper, e.g.
 `input_text.weather_ai_history` = "June avg high 104F vs 107F last year; hottest
-112F on the 18th". We then add that block to the prompt so the ticker can say
-"running milder than last summer." Ask me and I'll build it.
+112F on the 18th". Adding that block to the prompt would let the ticker say things
+like "running milder than last summer." Not implemented yet.

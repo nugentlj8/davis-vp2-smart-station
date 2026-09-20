@@ -153,7 +153,7 @@ views:
               columns: 6
               rows: 2
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_rain_this_month
+            entity: sensor.davis_vantage_pro2_rain_this_month
             grid_options:
               columns: 6
               rows: 2
@@ -166,7 +166,7 @@ views:
               columns: 6
               rows: 2
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_storm_start_date
+            entity: sensor.davis_vantage_pro2_storm_start_date
             grid_options:
               columns: 12
               rows: 1
@@ -235,7 +235,7 @@ views:
               columns: 6
               rows: 1
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_active_alarms
+            entity: sensor.davis_vantage_pro2_active_alarms
             color: deep-purple
             vertical: false
             features_position: bottom
@@ -486,7 +486,7 @@ views:
             entities:
               - entity: weather:year_rain_total
                 name: Archive
-              - entity: sensor.office_davis_vantage_pro2_rain_this_year
+              - entity: sensor.davis_vantage_pro2_rain_this_year
                 name: Live
           - type: custom:apexcharts-card
             header:
@@ -580,7 +580,7 @@ views:
             entities:
               - entity: weather:month_rain_total
                 name: Archive
-              - entity: sensor.office_davis_vantage_pro2_rain_this_month
+              - entity: sensor.davis_vantage_pro2_rain_this_month
                 name: Live
           - type: statistics-graph
             title: Monthly Avg Barometer
@@ -832,7 +832,7 @@ views:
               columns: 6
               rows: 2
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_rain_this_month
+            entity: sensor.davis_vantage_pro2_rain_this_month
             grid_options:
               columns: 6
               rows: 2
@@ -845,7 +845,7 @@ views:
               columns: 6
               rows: 1
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_storm_start_date
+            entity: sensor.davis_vantage_pro2_storm_start_date
           - type: tile
             entity: sensor.wind_gust_today
             grid_options:
@@ -888,7 +888,7 @@ views:
             grid_options:
               columns: 6
               rows: 1
-            entity: sensor.office_davis_vantage_pro2_active_alarms
+            entity: sensor.davis_vantage_pro2_active_alarms
             color: deep-purple
             vertical: false
             features_position: bottom
@@ -910,28 +910,28 @@ views:
             vertical: false
             features_position: bottom
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_bridge_free_memory
+            entity: sensor.davis_vantage_pro2_bridge_free_memory
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_bridge_last_status
+            entity: sensor.davis_vantage_pro2_bridge_last_status
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_bridge_read_failures
+            entity: sensor.davis_vantage_pro2_bridge_read_failures
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_bridge_uptime
+            entity: sensor.davis_vantage_pro2_bridge_uptime
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_bridge_wifi_signal
+            entity: sensor.davis_vantage_pro2_bridge_wifi_signal
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_forecast_rule
+            entity: sensor.davis_vantage_pro2_forecast_rule
           - type: tile
             entity: sensor.detailed_forecast
             grid_options:
               columns: 12
               rows: 1
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_bridge_ap_bssid
+            entity: sensor.davis_vantage_pro2_bridge_ap_bssid
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_bridge_ip_address
+            entity: sensor.davis_vantage_pro2_bridge_ip_address
           - type: tile
-            entity: sensor.office_davis_vantage_pro2_bridge_wifi_channel
+            entity: sensor.davis_vantage_pro2_bridge_wifi_channel
           - type: tile
             entity: ai_task.ollama_ai_task
           - type: tile

@@ -15,7 +15,7 @@ SETUP
   1. pip install openpyxl websocket-client
   2. HA -> your user (bottom-left) -> Security -> Long-lived access tokens ->
      Create Token -> paste into TOKEN below.
-  3. Check XLSX_PATH points to the spreadsheet on this computer.
+  3. Check XLSX_PATH points to your spreadsheet, and set TZ_OFFSET to your UTC offset.
   4. Run:  python import_history_to_ha.py
 """
 

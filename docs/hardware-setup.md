@@ -1,6 +1,7 @@
 # Davis Vantage Pro2 → ESP32-S3 → Home Assistant
 
-Your console (firmware **Nov 13 2004**, well before the 2012 serial lockout) outputs every reading
+A pre-2012 console (the one this was built against reports firmware **Nov 13 2004**, well before the
+serial lockout) outputs every reading
 digitally over its expansion port at **3.3 V TTL** — the exact voltage the ESP32-S3 runs at. No camera,
 no cloud AI, no data logger. Three wires and a flash.
 
@@ -10,7 +11,7 @@ no cloud AI, no data logger. Three wires and a flash.
 
 | Item | Notes |
 |---|---|
-| ESP32-S3-WROOM dev board | The one you already have. |
+| ESP32-S3-WROOM dev board | Any ESP32 works; this was built on an S3. |
 | Connector to the console port | The expansion port is a **2×10, 2 mm-pitch** male header. Easiest: a 2 mm IDC socket + ribbon, or carefully fit 2 mm female jumpers onto the 3 pins you need. |
 | 3 jumper wires | Console → ESP32. |
 | USB-C cable | Powers + flashes the ESP32. |
@@ -80,9 +81,17 @@ Rules:
 4. Once the ESP32 is running, a device named **"Davis Vantage Pro2"** appears automatically under
    *Settings → Devices & Services → MQTT*, with these entities:
 
-   Outside Temperature, Inside Temperature, Outside Humidity, Inside Humidity, Barometer,
-   Barometer Trend, Wind Speed, Wind Speed (10-min avg), Wind Direction (degrees),
-   Rain Rate, Rain Today, Storm Rain, Forecast, Console Battery, Transmitter Battery Low.
+   **Weather:** Outside Temperature, Inside Temperature, Outside Humidity, Inside Humidity,
+   Barometer, Barometer Trend, Wind Speed, Wind Speed (10-min avg), Wind Direction (degrees),
+   Rain Rate, Rain Today, Rain This Month, Rain This Year, Storm Rain, Storm Start Date,
+   Forecast, Forecast Rule, Active Alarms, Console Battery, Transmitter Battery Low.
+
+   **Diagnostics:** Bridge Uptime, WiFi Signal, Free Memory, Read Failures, Last Status,
+   AP (BSSID), IP Address, MAC, WiFi Channel.
+
+   > Leave the device name as **Davis Vantage Pro2**. The template sensors and dashboard
+   > refer to entities as `sensor.davis_vantage_pro2_*`; renaming the device in HA
+   > regenerates those entity IDs and breaks both.
 
 No YAML required — it's all auto-discovery.
 
@@ -108,8 +117,9 @@ No YAML required — it's all auto-discovery.
 
 ---
 
-## 7. Your 20 years of history
+## 7. Importing historical records
 
-Separate from the live feed: `Weather_History_Log.xlsx` is your manual-entry log for the monthly
-averages you read off the console. Enter monthly values; yearly and quarterly roll-ups calculate
-themselves. Later we can push that history into the same system so live + historical live side by side.
+Separate from the live feed: if you have years of readings logged off the console by hand, they can
+be pushed into Home Assistant's long-term statistics so history and live data sit side by side on
+the same charts. See [`../data/README.md`](../data/README.md) for the expected workbook format and
+[`../scripts/import_history_to_ha.py`](../scripts/import_history_to_ha.py) for the importer.
