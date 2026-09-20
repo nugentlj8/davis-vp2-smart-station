@@ -68,8 +68,8 @@ no proprietary logger — three wires and a flash.
 - **20 years of history** imported into HA long-term statistics via the
   websocket API (`scripts/import_history_to_ha.py`), shown alongside live data.
 - **Console-style dashboards** (`homeassistant/dashboard.yaml`) — a rotating
-  wind compass (custom SVG), mobile + desktop layouts, and a Records tab with
-  ApexCharts overlaying archive vs. live yearly/monthly/daily records.
+  wind compass (custom SVG), separate phone and desktop layouts, and a Records tab
+  with ApexCharts overlaying archive vs. live yearly/monthly/daily records.
 - **Local-AI weather ticker** (`homeassistant/ai_ticker_automation.yaml`) — an
   Ollama LLM summarizes live readings + the official NWS forecast + active NWS
   alerts into a friendly one-line ticker, with guardrails against hallucinated
@@ -100,7 +100,7 @@ firmware/davis_vp2_bridge/
 homeassistant/
     configuration_helpers.yaml  template sensors (paste into configuration.yaml)
     ai_ticker_automation.yaml   the local-LLM ticker automation
-    dashboard.yaml              Mobile / Desktop / Records views
+    dashboard.yaml              Mobile / History / Records / Console / Debug views
     www/davis_compass.svg       wind compass face → copy to HA's config/www/
 scripts/
     import_history_to_ha.py     spreadsheet → HA long-term statistics
@@ -175,8 +175,10 @@ dashboard will render as a column of *"Custom element doesn't exist"* errors:
 
 5. **Dashboard** — install the four HACS cards listed above, then create a new dashboard,
    switch it to **Sections** layout, open the raw YAML editor (⋮ → *Edit in YAML*), and paste
-   [`homeassistant/dashboard.yaml`](homeassistant/dashboard.yaml). It ships Mobile, Desktop, and
-   Records views.
+   [`homeassistant/dashboard.yaml`](homeassistant/dashboard.yaml). It ships five views:
+   **Mobile** (single-column phone layout), **Console** (the desktop console-style view in the
+   screenshot above), **History** (24 h / 7 d / 30 d trends), **Records** (archive vs. live), and
+   **Debug** (bridge diagnostics — uptime, RSSI, IP, heap, read failures). Delete any you don't want.
 
 6. **Import history** *(optional)* — `pip install -r scripts/requirements.txt`, create a
    long-lived access token in HA (*your profile → Security → Long-lived access tokens*), set
