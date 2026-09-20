@@ -67,18 +67,33 @@ def metric_for(header):
 
 
 def period_start(tab, label):
+    """Row label -> the ISO timestamp that starts its period.
+
+    Excel usually hands back a real datetime for date-looking cells, but a
+    column formatted as text comes through as a string, so both are handled.
+    """
     if isinstance(label, datetime):
         d = label
     else:
         s = str(label).strip()
-        if tab == "Years":
-            d = datetime(int(s[:4]), 1, 1)
-        elif tab == "Months":
-            d = datetime(int(s[:4]), int(s[5:7]), 1)
-        elif tab == "Days":
-            d = datetime(int(s[:4]), int(s[5:7]), int(s[8:10]))
-        else:
-            raise ValueError("bad label %r" % (label,))
+        try:
+            if tab == "Years":                      # 2018
+                d = datetime(int(s[:4]), 1, 1)
+            elif tab == "Months":                   # 2024-06
+                d = datetime(int(s[:4]), int(s[5:7]), 1)
+            elif tab == "Days":                     # 2024-06-15
+                d = datetime(int(s[:4]), int(s[5:7]), int(s[8:10]))
+            elif tab == "Hours":                    # 2024-06-15 13:00
+                d = datetime(int(s[:4]), int(s[5:7]), int(s[8:10]), int(s[11:13]))
+            else:
+                raise ValueError("unknown tab")
+        except (ValueError, IndexError):
+            raise ValueError(
+                "%s tab: can't read row label %r. Expected %s."
+                % (tab, label, {"Years": "2018", "Months": "2024-06",
+                                "Days": "2024-06-15",
+                                "Hours": "2024-06-15 13:00"}.get(tab, "a date")))
+    # statistics are hourly buckets, so anything finer is floored to the hour
     return d.strftime("%Y-%m-%dT%H:00:00") + TZ_OFFSET
 
 

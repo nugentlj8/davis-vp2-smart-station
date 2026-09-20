@@ -9,6 +9,24 @@ console-style dashboard, and a locally-hosted LLM that narrates the weather —
 > protocol, bridged it to Home Assistant over MQTT with custom ESP32 firmware,
 > and layered on long-term statistics, dashboards, and edge AI.
 
+## Why
+
+For twenty years the only way data left this console was by hand — I read the highs and
+lows off the LCD and typed them into a spreadsheet. Davis sells a logger that automates
+that for **$235**, which is steep for what amounts to a serial adapter, and it only talks
+to their own software.
+
+My first plan was to point a camera at the display and OCR it. Then I found out that
+consoles built before 2012 ship with the serial port unlocked, and that the expansion
+port on the back speaks 3.3 V TTL — exactly what an ESP32 runs at. The information you
+need to use it does exist, but it's scattered: a 2011 blog post, a lookup table buried in
+the CumulusMX source, and Davis's own protocol manual. I couldn't find one place that
+walked the whole path from console to Home Assistant, so this repo is that walkthrough,
+plus the firmware that does it.
+
+The spreadsheet went in too — twenty years of hand-logged records now sit on the same
+charts as the live feed.
+
 ![The Davis Vantage Pro2 console with the ESP32 bridge wired into its expansion port](docs/console-with-esp32.jpg)
 
 <sub>Three wires into the expansion port on the <b>back</b> of the console — no logger, no case mods,
@@ -178,7 +196,12 @@ dashboard will render as a column of *"Custom element doesn't exist"* errors:
    [`homeassistant/dashboard.yaml`](homeassistant/dashboard.yaml). It ships five views:
    **Mobile** (single-column phone layout), **Console** (the desktop console-style view in the
    screenshot above), **History** (24 h / 7 d / 30 d trends), **Records** (archive vs. live), and
-   **Debug** (bridge diagnostics — uptime, RSSI, IP, heap, read failures). Delete any you don't want.
+   **Debug** (bridge diagnostics). Delete any you don't want — though the Debug view has
+   earned its keep: it surfaces Wi-Fi RSSI and channel, the bridge's IP and the BSSID it
+   associated with, free heap, and a consecutive read-failure count. A weak signal in the
+   console's corner of the house and an IP collision with another device both present
+   identically from the dashboard — sensors just quietly stop updating — and this view is
+   what tells them apart.
 
 6. **Import history** *(optional)* — `pip install -r scripts/requirements.txt`, create a
    long-lived access token in HA (*your profile → Security → Long-lived access tokens*), set
