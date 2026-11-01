@@ -18,6 +18,20 @@ ever seeing the Home Assistant token** and without being able to touch anything 
    `docker-compose.yml`.
 4. `docker compose up -d --build`, then open `http://<host>:8765/<secret>/help`.
 
+## Connecting the assistant
+Give it the base URL, including the secret (`http://<host>:8765/<secret>`), and tell it to read
+`/help` first; that response documents every endpoint and lists your lights, fans, sensors and rooms.
+If the assistant lives outside your network, reach the proxy through a tunnel (Cloudflare Tunnel,
+Tailscale, or whatever your assistant's gadget uses). **Do not port-forward 8765.** After editing
+`allowed.json`, ask the assistant to re-read `/help`.
+
+## Security model
+- The HA token exists only in `.env` on the server. The assistant never sees it.
+- Use a **non-admin** HA user for the token, so even a bug here can't do much.
+- Only these services can ever be called: `light.turn_on/off`, `fan.turn_on/off/set_percentage`.
+- Entities not in `allowed.json` return 404. Read endpoints are filtered to listed entities.
+- The URL secret is obscurity, not authentication; treat it as a password and keep it off public pages.
+
 ## Weather history: two sources
 | Endpoint | Source | Covers |
 |---|---|---|
@@ -27,6 +41,12 @@ ever seeing the Home Assistant token** and without being able to touch anything 
 `/history` only knows live sensors, so on its own it can't see the imported archive — `/archive`
 exists for that. Archive rows are single values per period (record highs/lows, rain totals, peak
 wind, etc.), not raw readings. Add `?sensors=a,b` to `/history` to select sensors.
+
+## Adding things
+Add entries to `allowed.json` as `"short_id": {"entity": "domain.entity_id", "name": "Friendly name"}`
+(lights and fans also need a `"room"`). Sections: `lights`, `fans`, `sensors`, `weather`, `thermostats`.
+Changes apply within seconds; a typo keeps the last good config (see `docker logs muse-proxy`).
+Set `"history": false` on a sensor to hide its history.
 
 ## Troubleshooting
 - `{"ok": false, "error": "not found"}` on `/help` → you set a URL secret; use `/<secret>/help`.

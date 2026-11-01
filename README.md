@@ -148,6 +148,7 @@ units. Check yours under *Setup → Receiving → Version*.
 | History import (optional) | Python 3.9+ and `pip install -r scripts/requirements.txt` |
 | AI ticker (optional) | [Ollama](https://ollama.com) on any machine with a ~6 GB GPU, plus the NWS integration (US) or Met.no |
 | Backups (optional) | [rclone](https://rclone.org), and HA running under Docker on Windows |
+| AI-assistant gateway (optional) | Docker (or plain Python 3.9+), a non-admin HA user + long-lived token, and the history import above if you want the archive |
 
 **HACS cards required by `dashboard.yaml`** — install all four before importing it, or the
 dashboard will render as a column of *"Custom element doesn't exist"* errors:
@@ -220,6 +221,26 @@ dashboard will render as a column of *"Custom element doesn't exist"* errors:
 8. **Backups** *(optional)* — [`docs/backup-setup.md`](docs/backup-setup.md) sets up the nightly
    rclone job to Google Drive.
 
+9. **AI-assistant gateway** *(optional)* — lets an AI assistant (I use Muse) read the station and
+   switch a few lights and fans without ever holding a Home Assistant token. Full detail in
+   [`muse-proxy/README.md`](muse-proxy/README.md); the short version:
+
+   1. In HA, create a **non-admin** user (e.g. `muse`), log in as it, and create a long-lived access
+      token (profile → Security).
+   2. In `muse-proxy/`, copy `.env.example` to `.env`, paste the token, and set `MUSE_URL_SECRET`
+      to a random word (it becomes part of every URL, so a stranger hitting the port just gets a 404).
+   3. Edit `muse-proxy/allowed.json` to your own entity IDs, and `HA_URL` in `docker-compose.yml`.
+      Only entities listed there are reachable; anything else is a 404.
+   4. Run `docker compose up -d --build`, then browse to `http://<host>:8765/<secret>/help`.
+   5. Give the assistant that URL and tell it to read `/help` first. It lists every endpoint:
+      live readings, `/history/<period>`, the imported `/archive/<year|month|day|hour>` records,
+      the NWS forecast, thermostat status (read-only), and light/fan control.
+
+   The proxy has no way to change the thermostat or call any service beyond light and fan
+   on/off/brightness/speed. Reach it from outside the house through the same kind of tunnel as
+   the dashboard, never by forwarding the port. Run it *after* the history import (step 6),
+   or `/archive` will be empty.
+
 Every credential and host in this repo is a placeholder — `YOUR_WIFI_SSID`, `192.168.1.100`,
 `PASTE_YOUR_HA_LONG_LIVED_ACCESS_TOKEN_HERE`, `weather.nws_YOURSTATION`. Replace them with
 your own; none of them are real.
@@ -263,7 +284,7 @@ the station works entirely on the LAN without it.
 Embedded C (ESP32) · binary serial protocol reverse-engineering · CRC-CCITT ·
 MQTT & Home Assistant auto-discovery · Jinja2 template sensors · long-term
 statistics / time-series data · ApexCharts · local LLMs (Ollama) & prompt
-engineering · Cloudflare Zero Trust remote access · Docker · rclone backups.
+engineering · Cloudflare Zero Trust remote access · Docker · rclone backups · least-privilege API gateway design.
 
 ## Author
 
