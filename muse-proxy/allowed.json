@@ -1,0 +1,116 @@
+{
+  "temperature_unit": "°F",
+  "lights": {
+    "living_room_light": {
+      "entity": "light.living_room_light",
+      "name": "Living Room Light",
+      "room": "family_room"
+    }
+  },
+  "fans": {
+    "bedroom_fan": {
+      "entity": "fan.bedroom_fan",
+      "name": "Bedroom fan",
+      "room": "master_bedroom"
+    }
+  },
+  "sensors": {
+    "barometer": {
+      "entity": "sensor.davis_vantage_pro2_barometer",
+      "name": "Barometer"
+    },
+    "barometer_trend": {
+      "entity": "sensor.davis_vantage_pro2_barometer_trend",
+      "name": "Barometer Trend"
+    },
+    "inside_humidity": {
+      "entity": "sensor.davis_vantage_pro2_inside_humidity",
+      "name": "Inside Humidity"
+    },
+    "inside_temperature": {
+      "entity": "sensor.davis_vantage_pro2_inside_temperature",
+      "name": "Inside Temp"
+    },
+    "outside_humidity": {
+      "entity": "sensor.davis_vantage_pro2_outside_humidity",
+      "name": "Outside Humidity"
+    },
+    "outside_temperature": {
+      "entity": "sensor.davis_vantage_pro2_outside_temperature",
+      "name": "Outside Temp"
+    },
+    "rain_rate": {
+      "entity": "sensor.davis_vantage_pro2_rain_rate",
+      "name": "Rain Rate"
+    },
+    "rain_today": {
+      "entity": "sensor.davis_vantage_pro2_rain_today",
+      "name": "Rain Today"
+    },
+    "storm_rain": {
+      "entity": "sensor.davis_vantage_pro2_storm_rain",
+      "name": "Storm Rain"
+    },
+    "wind_direction": {
+      "entity": "sensor.davis_vantage_pro2_wind_direction",
+      "name": "Wind Direction"
+    },
+    "wind_speed": {
+      "entity": "sensor.davis_vantage_pro2_wind_speed",
+      "name": "Wind Speed"
+    },
+    "wind_speed_10_min_avg": {
+      "entity": "sensor.davis_vantage_pro2_wind_speed_10_min_avg",
+      "name": "Wind Speed (10-min avg)"
+    },
+    "rain_this_month": {
+      "entity": "sensor.office_davis_vantage_pro2_rain_this_month",
+      "name": "Rain This Month"
+    },
+    "rain_this_year": {
+      "entity": "sensor.office_davis_vantage_pro2_rain_this_year",
+      "name": "Rain This Year"
+    },
+    "storm_start_date": {
+      "entity": "sensor.office_davis_vantage_pro2_storm_start_date",
+      "name": "Storm Start Date"
+    },
+    "apparent_temperature": {
+      "entity": "sensor.apparent_temperature",
+      "name": "Apparent Temperature"
+    },
+    "dew_point": {
+      "entity": "sensor.dew_point",
+      "name": "Dew Point"
+    },
+    "temp_high_today": {
+      "entity": "sensor.temp_high_today",
+      "name": "Temp High Today"
+    },
+    "temp_low_today": {
+      "entity": "sensor.temp_low_today",
+      "name": "Temp Low Today"
+    },
+    "wind_chill": {
+      "entity": "sensor.wind_chill",
+      "name": "Wind Chill"
+    },
+    "ticker": {
+      "entity": "sensor.weather_ticker",
+      "name": "Weather ticker (alerts + AI summary)"
+    }
+  },
+  "weather": {
+    "nws": {
+      "entity": "weather.nws_YOURSTATION",
+      "name": "NWS"
+    }
+  },
+  "thermostats": {
+    "thermostat": {
+      "entity": "climate.thermostat",
+      "name": "Thermostat",
+      "humidity_entity": "sensor.thermostat_humidity"
+    }
+  }
+}

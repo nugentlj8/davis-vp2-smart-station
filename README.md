@@ -92,6 +92,9 @@ no proprietary logger — three wires and a flash.
   Ollama LLM summarizes live readings + the official NWS forecast + active NWS
   alerts into a friendly one-line ticker, with guardrails against hallucinated
   forecasts.
+- **AI-assistant gateway** ([`muse-proxy/`](muse-proxy/)) — a stdlib-only allow-list proxy that exposes
+  live readings, history, the imported archive, and NWS forecast read-only, plus light/fan control,
+  without handing the assistant a Home Assistant token.
 - **Off-site backups** — nightly Google Drive backup via rclone
   (`scripts/ha_backup_to_gdrive.ps1`).
 
@@ -125,6 +128,7 @@ scripts/
     ha_backup_to_gdrive.ps1     nightly rclone backup to Google Drive
     requirements.txt            Python deps for the importer
 docs/                           wiring, AI ticker, data cleanup, backups
+muse-proxy/                     allow-list proxy: lets an AI assistant read the station + control lights, safely
 data/README.md                  expected workbook format for the importer
 ```
 

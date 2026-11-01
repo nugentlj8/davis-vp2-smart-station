@@ -1,0 +1,15 @@
+services:
+  muse-proxy:
+    build: .
+    container_name: muse-proxy
+    restart: unless-stopped
+    ports:
+      - "8765:8765"
+    volumes:
+      # Edit allowed.json and the change applies within seconds (no rebuild)
+      - ./allowed.json:/app/allowed.json:ro
+    environment:
+      # If the proxy can't reach HA at this address, try http://host.docker.internal:8123
+      HA_URL: "http://192.168.1.100:8123"
+      HA_TOKEN: "${MUSE_HA_TOKEN}"
+      URL_SECRET: "${MUSE_URL_SECRET:-}"
