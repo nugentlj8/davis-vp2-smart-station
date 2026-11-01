@@ -9,7 +9,8 @@ one statistic per metric per granularity, e.g.:
     weather:year_temp_high      "Hist Year Temp High"      (deg F)
     weather:month_baro_avg      "Hist Month Avg Barometer" (inHg)
     weather:hour_temp           "Hist Hour Temp"           (deg F)
-Blank cells are skipped. Re-running overwrites the same points (no duplicates).
+Blank cells are skipped. Re-running REPLACES each statistic: its existing points are cleared
+first, so a cell you blanked in the spreadsheet is really removed (no duplicates, no stale values).
 
 SETUP
   1. pip install openpyxl websocket-client
@@ -150,6 +151,12 @@ def main():
             sys.exit("Auth failed - check the token.")
         print("Authenticated.")
         mid = 1
+        # Replace, don't merge: clear the old points so blanked cells disappear too.
+        conn.send(json.dumps({"id": mid, "type": "recorder/clear_statistics",
+                              "statistic_ids": sorted(series)}))
+        resp = json.loads(conn.recv())
+        print("Cleared old points -> %s" % ("OK" if resp.get("success") else resp))
+        mid += 1
         for sid, s in sorted(series.items()):
             conn.send(json.dumps({
                 "id": mid, "type": "recorder/import_statistics",

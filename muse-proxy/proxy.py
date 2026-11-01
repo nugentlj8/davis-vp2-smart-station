@@ -386,7 +386,11 @@ def archive_view(c, scale):
         out.append({"id": m, "name": name, "unit": unit, "values": vals})
     return {"ok": True, "scale": scale, "series": out,
             "note": "Davis console archive records (one value per %s), not raw readings. 'year' goes "
-                    "back to 2005." % scale}
+                    "back to 2005. A missing period means the value was removed as unreliable, not "
+                    "that it was zero." % scale,
+            "caution": "rain_rate_max is the console's INSTANTANEOUS peak (computed from the time "
+                       "between rain-bucket tips), so values above ~10 in/h are likely brief spikes, "
+                       "not sustained rates. Prefer rain_total for how much rain fell."}
 
 
 def parse_int(value, label, lo, hi):
